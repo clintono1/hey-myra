@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Myra, a quick question</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=DM+Mono:wght@400;500&family=Caveat:wght@700&display=swap">
+<style>
+  :root { --ink:#1B1B1F; --paper:#FFEEF2; --red:#C8102E; --muted:#5A4A50; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--paper); color:var(--ink); font-family:'Bricolage Grotesque', system-ui, sans-serif; overflow-x:hidden; }
+  .wrap { min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; padding:28px 20px 40px; text-align:center; }
+  .top { font-family:'DM Mono', monospace; font-size:13px; letter-spacing:2px; text-transform:uppercase; border-bottom:2px solid var(--ink); padding-bottom:10px; width:min(560px,100%); display:flex; justify-content:space-between; }
+  .photo { width:min(360px,80vw); background:#fff; border:3px solid var(--ink); padding:10px; box-shadow:6px 6px 0 var(--ink); transform:rotate(-2deg); }
+  .photo img { display:block; width:100%; height:auto; }
+  h1 { margin:0; font-size:clamp(38px,9vw,72px); line-height:.95; font-weight:800; letter-spacing:-1.5px; max-width:640px; }
+  h1 span { color:var(--red); }
+  .sub { font-family:'DM Mono', monospace; font-size:14px; color:var(--muted); margin:0; }
+  .buttons { position:relative; display:flex; gap:18px; align-items:center; justify-content:center; min-height:80px; width:min(560px,100%); }
+  button { font:inherit; cursor:pointer; border:3px solid var(--ink); box-shadow:5px 5px 0 var(--ink); min-height:56px; min-width:120px; padding:12px 28px; font-size:24px; font-weight:800; transition:transform .15s ease; }
+  button:active { transform:translate(3px,3px); box-shadow:2px 2px 0 var(--ink); }
+  #yes { background:var(--red); color:#fff; }
+  #no { background:#fff; color:var(--ink); transition:left .25s ease, top .25s ease, transform .15s ease; }
+  #no.loose { position:fixed; z-index:5; }
+  .taunt { font-family:'Caveat', cursive; font-size:30px; color:var(--red); min-height:36px; margin:0; transform:rotate(-2deg); }
+
+  #done { display:none; }
+  .stamp { display:inline-block; border:5px solid var(--red); color:var(--red); font-family:'DM Mono', monospace; font-weight:500; font-size:clamp(22px,6vw,34px); letter-spacing:4px; padding:10px 22px; transform:rotate(-8deg) scale(2.5); opacity:0; transition:transform .45s cubic-bezier(.2,1.6,.4,1), opacity .2s; }
+  .stamp.in { transform:rotate(-8deg) scale(1); opacity:1; }
+  .options { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; width:min(520px,100%); }
+  .opt { font-size:18px; font-weight:700; min-width:0; padding:14px 10px; background:#fff; color:var(--ink); }
+  .opt.picked { background:var(--ink); color:#fff; }
+  .final { display:none; flex-direction:column; gap:10px; align-items:center; }
+  .final p { margin:0; font-size:20px; }
+  .links { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+  .links a { font-family:'DM Mono', monospace; font-size:16px; color:#fff; background:var(--red); padding:12px 18px; text-decoration:none; border:3px solid var(--ink); }
+  .links a:hover { background:#8E0B20; }
+  canvas { position:fixed; inset:0; pointer-events:none; z-index:10; }
+</style>
+</head>
+<body>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<main class="wrap" id="ask">
+  <div class="top"><span>Form 4-25 · Final step</span><span>For: Myra</span></div>
+  <div class="photo"><img src="clinton.jpg" alt="Clinton"></div>
+  <h1>Myra, will you go on a date with <span>me?</span></h1>
+  <p class="sub">Application #0425 · applicant: Clinton</p>
+  <div class="buttons">
+    <button id="yes" type="button">Yes</button>
+    <button id="no" type="button">No</button>
+  </div>
+  <p class="taunt" id="taunt" aria-live="polite"></p>
+</main>
+
+<main class="wrap" id="done">
+  <div class="stamp" id="stamp">APPROVED</div>
+  <h1>Congrats, you just made a <span>great</span> decision.</h1>
+  <p class="sub">Now pick our first date:</p>
+  <div class="options" id="options">
+    <button class="opt" type="button">Music studio session</button>
+    <button class="opt" type="button">Paint and sip</button>
+    <button class="opt" type="button">Pottery</button>
+    <button class="opt" type="button">Your idea</button>
+  </div>
+  <div class="final" id="final">
+    <p id="choice"></p>
+    <p class="sub">Screenshot this and send it to me so I know you're serious.</p>
+    <div class="links">
+      <a href="https://www.instagram.com/mrantisoxial/">IG @mrantisoxial</a>
+      <a href="https://www.tiktok.com/@mrantisoxial">TikTok @mrantisoxial</a>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  var no = document.getElementById('no');
+  var yes = document.getElementById('yes');
+  var taunt = document.getElementById('taunt');
+  var lines = ['Oh, I think you meant to click Yes', 'Don\'t worry, I know you meant Yes', 'Nope, try again', 'Are you sure?', 'That button is broken', 'Denied is currently unavailable', 'Your thumb slipped, it happens', 'The Yes button is right there', 'Come on Myra', 'I\'ll pretend I didn\'t see that', 'Error 404: No not found', 'Okay now you are just playing', 'You can keep trying, I can keep running'];
+  var labels = ['No', 'Are you sure?', 'Really?', 'Nah', 'Wrong button', 'Nice try', 'Meant Yes?', 'Think again', 'Nope', 'Still no?'];
+  var dodges = 0;
+
+  var last = 0;
+  function dodge(e) {
+    if (e) { e.preventDefault(); }
+    var now = Date.now();
+    if (now - last < 250) return;
+    last = now;
+    var r = no.getBoundingClientRect();
+    if (!no.classList.contains('loose')) {
+      no.style.left = r.left + 'px';
+      no.style.top = r.top + 'px';
+      no.classList.add('loose');
+    }
+    var pad = 16;
+    var maxX = window.innerWidth - r.width - pad;
+    var maxY = window.innerHeight - r.height - pad;
+    var yr = yes.getBoundingClientRect();
+    var x, y, tries = 0;
+    do {
+      x = pad + Math.random() * Math.max(0, maxX - pad);
+      y = pad + Math.random() * Math.max(0, maxY - pad);
+      tries++;
+    } while (tries < 30 && (Math.abs(x - r.left) < 120 && Math.abs(y - r.top) < 80 ||
+             (x < yr.right + 10 && x + r.width > yr.left - 10 && y < yr.bottom + 10 && y + r.height > yr.top - 10)));
+    var mode = ['jump', 'jump', 'corner', 'spin', 'shrink', 'shake', 'edge'][Math.floor(Math.random() * 7)];
+    if (dodges === 0) mode = 'jump';
+    if (mode === 'corner') {
+      x = Math.random() < 0.5 ? pad : maxX;
+      y = Math.random() < 0.5 ? pad : maxY;
+    } else if (mode === 'edge') {
+      y = pad; x = pad + Math.random() * Math.max(0, maxX - pad);
+    }
+    var tf = '';
+    if (mode === 'spin') tf = 'rotate(' + (Math.random() < 0.5 ? 360 : -360) + 'deg)';
+    if (mode === 'shrink') tf = 'scale(' + (0.55 + Math.random() * 0.2) + ')';
+    if (mode === 'edge') tf = 'rotate(180deg)';
+    no.style.transition = mode === 'spin' ? 'left .45s ease, top .45s ease, transform .45s ease' : 'left .25s ease, top .25s ease, transform .2s ease';
+    if (mode === 'shake') {
+      no.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(0)' }], { duration: 260 });
+      setTimeout(function () { no.style.left = x + 'px'; no.style.top = y + 'px'; }, 260);
+    } else {
+      no.style.left = x + 'px';
+      no.style.top = y + 'px';
+    }
+    no.style.transform = tf;
+    if (mode === 'spin') setTimeout(function () { no.style.transition = 'none'; no.style.transform = ''; }, 470);
+    dodges++;
+    no.textContent = labels[dodges % labels.length];
+    var pick; do { pick = dodges <= 2 ? lines[dodges - 1] : lines[2 + Math.floor(Math.random() * (lines.length - 2))]; } while (dodges > 2 && pick === taunt.textContent);
+    taunt.textContent = pick;
+    var s = Math.min(1 + dodges * 0.08, 1.8);
+    yes.style.transform = 'scale(' + s + ')';
+  }
+
+  no.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') dodge(e); });
+  no.addEventListener('pointerdown', dodge);
+  no.addEventListener('touchstart', dodge, { passive: false });
+  no.addEventListener('click', dodge);
+  no.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') dodge(e); });
+
+  yes.addEventListener('click', function () {
+    document.getElementById('ask').style.display = 'none';
+    no.style.display = 'none';
+    document.getElementById('done').style.display = 'flex';
+    requestAnimationFrame(function () { document.getElementById('stamp').classList.add('in'); });
+    confetti();
+  });
+
+  var opts = document.querySelectorAll('.opt');
+  opts.forEach(function (b) {
+    b.addEventListener('click', function () {
+      opts.forEach(function (o) { o.classList.remove('picked'); });
+      b.classList.add('picked');
+      var t = b.textContent;
+      document.getElementById('choice').textContent = t === 'Your idea' ? 'Your idea it is. Tell me what you have in mind.' : t + ' it is. I\'ll handle the rest.';
+      document.getElementById('final').style.display = 'flex';
+      confetti();
+    });
+  });
+
+  function confetti() {
+    var c = document.getElementById('confetti');
+    var ctx = c.getContext('2d');
+    c.width = window.innerWidth; c.height = window.innerHeight;
+    var colors = ['#C8102E', '#1B1B1F', '#FF8FA3', '#FFFFFF', '#D6336C'];
+    var bits = [];
+    for (var i = 0; i < 160; i++) {
+      bits.push({ x: Math.random() * c.width, y: -20 - Math.random() * c.height * 0.5, w: 6 + Math.random() * 8, h: 8 + Math.random() * 10,
+        vy: 2 + Math.random() * 4, vx: -2 + Math.random() * 4, r: Math.random() * 6, vr: -0.2 + Math.random() * 0.4,
+        col: colors[Math.floor(Math.random() * colors.length)] });
+    }
+    var frames = 0;
+    (function tick() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      bits.forEach(function (b) {
+        b.x += b.vx; b.y += b.vy; b.r += b.vr;
+        ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.r);
+        ctx.fillStyle = b.col; ctx.strokeStyle = '#1B1B1F'; ctx.lineWidth = 1;
+        ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); ctx.strokeRect(-b.w / 2, -b.h / 2, b.w, b.h);
+        ctx.restore();
+      });
+      if (++frames < 260) requestAnimationFrame(tick); else ctx.clearRect(0, 0, c.width, c.height);
+    })();
+  }
+})();
+</script>
+</body>
+</html>
