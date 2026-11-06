@@ -21,7 +21,7 @@
   button { font:inherit; cursor:pointer; border:3px solid var(--ink); box-shadow:5px 5px 0 var(--ink); min-height:56px; min-width:120px; padding:12px 28px; font-size:24px; font-weight:800; transition:transform .15s ease; }
   button:active { transform:translate(3px,3px); box-shadow:2px 2px 0 var(--ink); }
   #yes { background:var(--red); color:#fff; }
-  #no { background:#fff; color:var(--ink); transition:left .25s ease, top .25s ease, transform .15s ease; }
+  #no { background:#fff; color:var(--ink); transition:left .4s ease, top .4s ease, transform .25s ease; }
   #no.loose { position:fixed; z-index:5; }
   .taunt { font-family:'Caveat', cursive; font-size:30px; color:var(--red); min-height:36px; margin:0; transform:rotate(-2deg); }
 
@@ -118,16 +118,16 @@
     if (mode === 'spin') tf = 'rotate(' + (Math.random() < 0.5 ? 360 : -360) + 'deg)';
     if (mode === 'shrink') tf = 'scale(' + (0.55 + Math.random() * 0.2) + ')';
     if (mode === 'edge') tf = 'rotate(180deg)';
-    no.style.transition = mode === 'spin' ? 'left .45s ease, top .45s ease, transform .45s ease' : 'left .25s ease, top .25s ease, transform .2s ease';
+    no.style.transition = mode === 'spin' ? 'left .7s ease, top .7s ease, transform .7s ease' : 'left .4s ease, top .4s ease, transform .3s ease';
     if (mode === 'shake') {
-      no.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(0)' }], { duration: 260 });
-      setTimeout(function () { no.style.left = x + 'px'; no.style.top = y + 'px'; }, 260);
+      no.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-10px)' }, { transform: 'translateX(10px)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(0)' }], { duration: 400 });
+      setTimeout(function () { no.style.left = x + 'px'; no.style.top = y + 'px'; }, 400);
     } else {
       no.style.left = x + 'px';
       no.style.top = y + 'px';
     }
     no.style.transform = tf;
-    if (mode === 'spin') setTimeout(function () { no.style.transition = 'none'; no.style.transform = ''; }, 470);
+    if (mode === 'spin') setTimeout(function () { no.style.transition = 'none'; no.style.transform = ''; }, 730);
     dodges++;
     no.textContent = labels[dodges % labels.length];
     var pick; do { pick = dodges <= 2 ? lines[dodges - 1] : lines[2 + Math.floor(Math.random() * (lines.length - 2))]; } while (dodges > 2 && pick === taunt.textContent);
